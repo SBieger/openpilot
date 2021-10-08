@@ -44,7 +44,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 class Planner():
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     self.CP = CP
-    self.mpc = LongitudinalMpc(e2e=True)
+    self.mpc = LongitudinalMpc()
 
     self.fcw = False
 
@@ -96,7 +96,7 @@ class Planner():
       x = np.zeros(33)
       v = np.zeros(33)
       a = np.zeros(33)
-    self.mpc.update_with_xva(x, v, a)
+    self.mpc.update(sm['carState'], sm['radarState'], v_cruise, x, v, a)
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
     self.j_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC[:-1], self.mpc.j_solution)
