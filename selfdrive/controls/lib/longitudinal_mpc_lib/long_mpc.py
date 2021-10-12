@@ -303,9 +303,9 @@ class LongitudinalMpc():
     x_targets = np.column_stack([x,
                                 1e4 + lead_0_obstacle - (3/4) * get_safe_obstacle_distance(v),
                                 1e4 + lead_1_obstacle - (3/4) * get_safe_obstacle_distance(v),
-                                cruise_target])
+                                1e4 + cruise_target])
     #self.source = SOURCES[np.argmin(x_obstacles[0])]
-    self.params[:,2] = 1e8
+    self.params[:,2] = 1e4
 
     self.yref[:,1] = np.min(x_targets, axis=1)
     self.solver.cost_set_slice(0, N, "yref", self.yref[:N], api='old')
