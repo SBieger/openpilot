@@ -298,11 +298,11 @@ class LongitudinalMpc():
     lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1])
     lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1])
 
-    cruise_target = T_IDXS * v_cruise
+    cruise_target = T_IDXS * v_cruise + x[0]
 
     x_targets = np.column_stack([x,
-                                lead_0_obstacle - (3/4) * get_safe_obstacle_distance(v),
-                                lead_1_obstacle - (3/4) * get_safe_obstacle_distance(v),
+                                1e4 + lead_0_obstacle - (3/4) * get_safe_obstacle_distance(v),
+                                1e4 + lead_1_obstacle - (3/4) * get_safe_obstacle_distance(v),
                                 cruise_target])
     #self.source = SOURCES[np.argmin(x_obstacles[0])]
     self.params[:,2] = 1e8
