@@ -96,7 +96,10 @@ class Planner():
       x = np.zeros(33)
       v = np.zeros(33)
       a = np.zeros(33)
-    self.mpc.update(sm['carState'], sm['radarState'], v_cruise, x, v, a)
+    self.mpc.update(sm['carState'], sm['radarState'], v_cruise, 
+                    np.interp(T_IDXS_MPC, T_IDXS, x),
+                    np.interp(T_IDXS_MPC, T_IDXS, v),
+                    np.interp(T_IDXS_MPC, T_IDXS, a))
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
     self.j_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC[:-1], self.mpc.j_solution)
