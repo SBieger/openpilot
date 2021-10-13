@@ -647,8 +647,8 @@ int main(int argc, char* argv[]) {
     if (serials.size() == 0) serials.push_back("");
 
     // connect to all provided serials
-    for (const auto& s : serials) {
-      Panda *p = usb_connect(s);
+    for (int i=0; i<serials.size(); i++) {
+      Panda *p = usb_connect(serials[i], i);
       if (p != NULL) {
         pandas.push_back(p);
       }
