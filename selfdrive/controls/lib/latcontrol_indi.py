@@ -82,7 +82,7 @@ class LatControlINDI():
 
     return self.sat_count > self.sat_limit
 
-  def update(self, active, CS, CP, VM, params, curvature, curvature_rate):
+  def update(self, active, CS, CP, VM, params, curvature, curvature_rate, roll):
     self.speed = CS.vEgo
     # Update Kalman filter
     y = np.array([[math.radians(CS.steeringAngleDeg)], [math.radians(CS.steeringRateDeg)]])
@@ -93,7 +93,7 @@ class LatControlINDI():
     indi_log.steeringRateDeg = math.degrees(self.x[1])
     indi_log.steeringAccelDeg = math.degrees(self.x[2])
 
-    steers_des = VM.get_steer_from_curvature(-curvature, CS.vEgo)
+    steers_des = VM.get_steer_from_curvature(-curvature, CS.vEgo, roll)
     steers_des += math.radians(params.angleOffsetDeg)
     if CS.vEgo < 0.3 or not active:
       indi_log.active = False
@@ -101,7 +101,7 @@ class LatControlINDI():
       self.steer_filter.x = 0.0
     else:
 
-      rate_des = VM.get_steer_from_curvature(-curvature_rate, CS.vEgo)
+      rate_des = VM.get_steer_from_curvature(-curvature_rate, CS.vEgo, roll)
 
       # Expected actuator value
       self.steer_filter.update_alpha(self.RC)
