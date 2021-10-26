@@ -150,6 +150,7 @@ class Panda(object):
 
   FLAG_HONDA_ALT_BRAKE = 1
   FLAG_HONDA_BOSCH_LONG = 2
+  FLAG_HYUNDAI_LONG = 4
 
   def __init__(self, serial=None, claim=True):
     self._serial = serial
@@ -428,11 +429,17 @@ class Panda(object):
   def has_canfd(self):
     return self._mcu_type in Panda.H7_DEVICES
 
+  def is_internal(self):
+    return self.get_type() in [Panda.HW_TYPE_UNO, Panda.HW_TYPE_DOS]
+
   def get_serial(self):
     dat = self._handle.controlRead(Panda.REQUEST_IN, 0xd0, 0, 0, 0x20)
     hashsig, calc_hash = dat[0x1c:], hashlib.sha1(dat[0:0x1c]).digest()[0:4]
     assert(hashsig == calc_hash)
     return [dat[0:0x10].decode("utf8"), dat[0x10:0x10 + 10].decode("utf8")]
+
+  def get_usb_serial(self):
+    return self._serial
 
   def get_secret(self):
     return self._handle.controlRead(Panda.REQUEST_IN, 0xd0, 1, 0, 0x10)
@@ -452,10 +459,11 @@ class Panda(object):
     self._handle.controlWrite(Panda.REQUEST_OUT, 0xda, int(bootmode), 0, b'')
     time.sleep(0.2)
 
-  def set_safety_mode(self, mode=SAFETY_SILENT, disable_heartbeat=True):
+  def set_safety_mode(self, mode=SAFETY_SILENT, disable_checks=True):
     self._handle.controlWrite(Panda.REQUEST_OUT, 0xdc, mode, 0, b'')
-    if disable_heartbeat:
+    if disable_checks:
       self.set_heartbeat_disabled()
+      self.set_power_save(0)
 
   def set_can_forwarding(self, from_bus, to_bus):
     # TODO: This feature may not work correctly with saturated buses
@@ -525,7 +533,13 @@ class Panda(object):
           for s in snds:
             self._handle.bulkWrite(3, s)
         else:
-          self._handle.bulkWrite(3, b''.join(snds), timeout=timeout)
+          dat = b''.join(snds)
+          while True:
+            bs = self._handle.bulkWrite(3, dat, timeout=timeout)
+            dat = dat[bs:]
+            if len(dat) == 0:
+              break
+            print("CAN: PARTIAL SEND MANY, RETRYING")
         break
       except (usb1.USBErrorIO, usb1.USBErrorOverflow):
         print("CAN: BAD SEND MANY, RETRYING")
